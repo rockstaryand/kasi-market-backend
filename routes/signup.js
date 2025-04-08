@@ -9,29 +9,29 @@ const supabaseUrl = process.env.SUPABASE_URL;
 const supabaseKey = process.env.SUPABASE_KEY;
 const supabase = createClient(supabaseUrl, supabaseKey);
 
-router.post("/signup", (req, res) => {
+router.post("/signup", async (req, res) => {
   // Get the user's email and password from the request body
 
   const { email, password } = req.body;
-
-  // Use the auth.createUser method to create a new Supabase auth user
-  supabase.auth
+  try {
+    const { data: {user}, error } = await supabase.auth
     .signUp({
       email: email,
       password: password,
       data: {
-        name: "Mihlali",
-        phone: "555-555-5556",
+        user
       },
-    })
-    .then((response) => {
-      console.log(response.data.user);
+    });
+    console.log(response.data.user);
 
-      res.json({ message: "User created successfully" });
-    })
-    .catch((error) => {
+    res.json({ message: "User created successfully" });
+  } catch(error) {
+    if (error?.response?.status === 401) {
+      console.error("Incorrect email or password");
+    } else {
       console.error(error);
       res.status(500).json({ message: "Error creating user" });
-    });
+    }
+  }
 });
 module.exports = router;
